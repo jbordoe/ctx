@@ -32,5 +32,7 @@ fn main() {
     for arg in &cmd[1..] {
         run_cmd.arg(arg);
     }
-    run_cmd.spawn();
+    run_cmd.spawn()
+        .expect("failed to execute command")
+        .wait();
 }
