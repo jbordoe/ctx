@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use clap::Parser;
+use colored::*;
 use dotenv_parser::parse_dotenv;
 use std::env;
 use std::ffi::OsString;
@@ -19,6 +20,10 @@ struct Cli {
     
     /// command to run
     command: Vec<OsString>,
+
+    /// Display env vars being set
+    #[clap(short, long)]
+    verbose: bool,
 }
 
 /// Inject configured environment variables
@@ -32,6 +37,13 @@ fn main() {
             .expect("could not read file");
 
         for (key, value) in parse_dotenv(&content).unwrap() {
+            if args.verbose {
+                eprintln!(
+                    "{}={}",
+                    key.bright_yellow().bold(),
+                    value.yellow()
+                );
+            }
             run_cmd.env(key, value);
         }
     }
@@ -39,18 +51,43 @@ fn main() {
     for env_str in args.env {
         let parts: Vec<&str> = env_str.split('=').collect();
         if parts.len() != 2 {
-            println!("Invalid environment variable mapping: {}", env_str);
+            eprintln!(
+                "{} {}",
+                "Invalid environment variable mapping:".bright_red().bold(),
+                env_str.red()
+            );
             continue;
         }
         let var = parts[0];
         let value = parts[1];
+        if args.verbose {
+            eprintln!(
+                "{}={}",
+                var.bright_yellow().bold(),
+                value.yellow()
+            );
+        }
+
         run_cmd.env(var, value);
-        println!("Set environment variable {} to {}", var, value);
     }
 
     for arg in &cmd[1..] {
         run_cmd.arg(arg);
     }
+    let command_str = cmd 
+        .iter()
+        .map(|os_str| os_str.to_string_lossy())
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    if args.verbose {
+        eprintln!(
+            "{} {}",
+            "Running command:".bright_purple().bold(),
+            command_str.purple()
+            );
+    }
+
     run_cmd.spawn()
         .expect("failed to execute command")
         .wait();
