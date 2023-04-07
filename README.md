@@ -13,14 +13,33 @@ Use`ctx` with any `.env` file containing your environment variables.
 Consider having multiple `.env` files for different contexts (staging, docker etc) and using `ctx` to easily switch.
 
 ### Examples
-Run a command using the variables defined in `.env.example`
+> **_NOTE:_**  In these examples we include our command as a string argument to `bash` to ensure the variables are interpolated **after** Rust updates the environment. In other instances you can just pass your command as is.
+
+Run a command using the variables defined in `.env.en.example`
+```bash
+ctx -f .env.example -- bash -c 'echo "$GREETING, $SUBJECT!"'
 ```
-ctx -f .env.example -- printenv | grep FOO
+Should display
+```
+Hello, World!
 ```
 
-Run a command using the variables defined in `.env.example`, but override the value for `FOO`
+Now run the same command using the variables defined in `.env.de.example`
+```bash
+ctx -f .env.de.example -- bash -c 'echo "$GREETING, $SUBJECT!"'
 ```
-ctx -f .env.example -e FOO=OVERRIDEN -- printenv | grep FOO
+Should display
+```
+Hallo, Welt!
+```
+
+Again, using the variables defined in `.env.de.example`, but override the value for `GREETING`
+```bash
+ctx -f .env.de.example -e GREETING=Moin -- bash -c 'echo "$GREETING, $SUBJECT!"'
+```
+Should display
+```
+Moin, Welt!
 ```
 
 Use `ctx --help` for more information
